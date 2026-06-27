@@ -3351,7 +3351,7 @@ const HTML_TEMPLATES = {
                 window.location.reload();
             }
         }
-const CURRENT_VERSION = '1.2.11';
+const CURRENT_VERSION = '1.2.12';
 
 		async function checkForUpdates(isManual = false) {
             try {
@@ -3423,7 +3423,7 @@ async function fetchIpsList() {
         cachedIpsData = {};
         
         blocks.forEach(block => {
-            const lines = block.trim().split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const lines = block.trim().split('\\n').map(l => l.trim()).filter(l => l.length > 0);
             if (lines.length === 0) return;
             
             let opName = "Unknown";
@@ -3516,7 +3516,7 @@ function applySelectedIps() {
         selectedIps = shuffled.slice(0, count);
     }
     
-    document.getElementById('input-ips').value = selectedIps.join('\n');
+    document.getElementById('input-ips').value = selectedIps.join('\\n');
     toggleIpSelectorModal(false);
 }
         document.addEventListener('DOMContentLoaded', () => {
