@@ -3361,7 +3361,7 @@ const CURRENT_VERSION = '1.3.2';
                 const res = await fetch('https://raw.githubusercontent.com/IR-NETLIFY/zeus/refs/heads/main/zeus.js?t=' + Date.now());
                 if (!res.ok) throw new Error('Network response was not ok');
                 const text = await res.text();
-                const match = text.match(/const\s+CURRENT_VERSION\s*=\s*['"](\d+\.\d+\.\d+)['"]/i);
+                const match = text.match(/const\\s+CURRENT_VERSION\\s*=\\s*['"](\\d+\\.\\d+\\.\\d+)['"]/i);
                 const latestVersion = match ? match[1] : null;
                 if (isManual) {
                     document.getElementById('update-toggle').classList.remove('animate-pulse');
