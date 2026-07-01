@@ -345,6 +345,65 @@ const Router = {
 				return new Response(JSON.stringify({ error: errorMsg }), { status: 500, headers: { "Content-Type": "application/json" } });
 			}
 		}
+		if (url.pathname === "/api/restart-core" && request.method === "POST") {
+			let currentToken = env.CF_API_TOKEN;
+			let currentAccountId = env.CF_ACCOUNT_ID;
+
+			if (!currentToken || !currentAccountId) {
+				return new Response(JSON.stringify({ error: "TOKEN_REQUIRED" }), { status: 400, headers: { "Content-Type": "application/json" } });
+			}
+
+			try {
+				const githubRes = await fetch("https://raw.githubusercontent.com/IR-NETLIFY/zeus/refs/heads/main/zeus.js?t=" + Date.now(), {
+					headers: {
+						"Cache-Control": "no-cache, no-store, must-revalidate",
+						Pragma: "no-cache",
+						Expires: "0",
+					},
+				});
+				if (!githubRes.ok) throw new Error("خطا در دریافت سورس از گیت‌هاب");
+				const newCode = await githubRes.text();
+
+				const scriptName = env.WORKER_NAME || url.hostname.split(".")[0];
+				const bindingsRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${currentAccountId}/workers/scripts/${scriptName}/bindings`, {
+					headers: { Authorization: "Bearer " + currentToken },
+				});
+				const bindingsData = await bindingsRes.json();
+				if (!bindingsData.success) throw new Error("عدم دسترسی به تنظیمات ورکر");
+
+				const newBindings = [];
+				for (const b of bindingsData.result) {
+					if (b.type === "d1") {
+						newBindings.push({ type: "d1", name: b.name, id: b.database_id || b.id });
+					}
+				}
+
+				newBindings.push({ type: "secret_text", name: "CF_API_TOKEN", text: currentToken });
+				newBindings.push({ type: "secret_text", name: "CF_ACCOUNT_ID", text: currentAccountId });
+
+				const metadata = {
+					main_module: "zeus.js",
+					compatibility_date: "2024-02-08",
+					bindings: newBindings,
+				};
+
+				const formData = new FormData();
+				formData.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+				formData.append("zeus.js", new Blob([newCode], { type: "application/javascript+module" }), "zeus.js");
+
+				const deployRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${currentAccountId}/workers/scripts/${scriptName}`, {
+					method: "PUT",
+					headers: { Authorization: "Bearer " + currentToken },
+					body: formData,
+				});
+				const deployData = await deployRes.json();
+				if (!deployData.success) throw new Error("خطا در اعمال ری‌استارت در کلودفلر");
+
+				return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+			} catch (err) {
+				return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+			}
+		}
 		if (url.pathname === "/api/change-password" && request.method === "POST") {
 			const { current_password, new_password } = await request.json();
 			if (!current_password || !new_password) {
@@ -2179,7 +2238,7 @@ login: `<!DOCTYPE html>
             <div class="flex flex-row flex-wrap justify-center items-center gap-3 w-full md:w-auto">
                 <h1 class="text-lg font-bold flex items-center gap-2" dir="ltr">
                     ZEUS Panel 
-                    <span id="panel-version" class="text-xs px-2 py-0.5 font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">v1.4.10</span>
+                    <span id="panel-version" class="text-xs px-2 py-0.5 font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">v1.5.10</span>
                 </h1>
                 <div class="flex items-center gap-3 bg-gray-100 dark:bg-zinc-800/60 px-3 py-1.5 rounded-full border border-gray-200 dark:border-zinc-800/80 shadow-sm flex-shrink-0 w-fit">
                     <a href="https://github.com/IR-NETLIFY/zeus" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-all transform hover:scale-125 duration-200 flex-shrink-0" title="GitHub">
@@ -2195,14 +2254,28 @@ login: `<!DOCTYPE html>
                 </div>
             </div>
             <div class="flex items-center justify-center gap-3 w-full md:w-auto mt-2 md:mt-0">
+			
+				<button onclick="restartCore()" 
+                        class="p-2 rounded-lg 
+                               bg-blue-50 dark:bg-blue-950/30 
+                               border border-blue-200 dark:border-blue-900 
+                               hover:bg-blue-100 dark:hover:bg-blue-900/50 
+                               transition-all duration-200 
+                               text-blue-600 dark:text-blue-400 shadow-sm" 
+                        title="ری‌استارت هسته ورکر">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+				
                 <button id="theme-toggle" 
                         class="p-2 rounded-lg 
                                bg-amber-50 dark:bg-amber-950/30 
                                border border-amber-200 dark:border-amber-900 
                                hover:bg-amber-100 dark:hover:bg-amber-900/50 
                                transition-all duration-200 
-                               text-amber-600 dark:text-amber-400 shadow-sm">
-                    
+                               text-amber-500 dark:text-amber-400 shadow-sm"
+                        title="تغییر تم">
                     <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
@@ -2229,18 +2302,18 @@ login: `<!DOCTYPE html>
                 
                 <button onclick="toggleSettingsModal(true)" 
                         class="p-2 rounded-lg 
-                               bg-indigo-50 dark:bg-indigo-950/30 
-                               border border-indigo-200 dark:border-indigo-900 
-                               hover:bg-indigo-100 dark:hover:bg-indigo-900/50 
+                               bg-gray-50 dark:bg-zinc-800/50 
+                               border border-gray-200 dark:border-zinc-700 
+                               hover:bg-gray-100 dark:hover:bg-zinc-700/80 
                                transition-all duration-200 
-                               text-indigo-600 dark:text-indigo-400 shadow-sm" 
-                        title="Settings">
-                    
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               text-gray-600 dark:text-zinc-400 shadow-sm" 
+                        title="تنظیمات">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
                 </button>
+				
                 <button 
                     onclick="logoutAdmin()" 
                     class="p-2 rounded-lg 
@@ -2251,7 +2324,6 @@ login: `<!DOCTYPE html>
                            text-red-600 dark:text-red-400 
                            shadow-sm hover:shadow-md"
                     title="Logout">
-    
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                     </svg>
@@ -3208,6 +3280,40 @@ login: `<!DOCTYPE html>
                 localStorage.setItem('color-theme', 'dark');
             }
         });
+		async function restartCore() {
+            if (!confirm('آیا از ری‌استارت هسته ورکر مطمئن هستید؟ این کار تمام اتصالات فعلی را قطع می‌کند.')) return;
+            
+            const btn = document.querySelector('button[title="ری‌استارت هسته ورکر"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('animate-pulse');
+            }
+            
+            try {
+                const res = await fetch('/api/restart-core', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                
+                if (res.ok && data.success) {
+                    alert('هسته ورکر با موفقیت ری‌استارت شد! پنل اکنون رفرش می‌شود.');
+                    window.location.reload();
+                } else {
+                    alert('خطا در ری‌استارت هسته: ' + (data.error || 'ناشناخته'));
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('animate-pulse');
+                    }
+                }
+            } catch (err) {
+                alert('خطا در ارتباط با سرور.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('animate-pulse');
+                }
+            }
+        }
         async function loadUsers(silent = false) {
             const loadingState = document.getElementById('loading-state');
             const tableContainer = document.getElementById('users-table-container');
@@ -4041,7 +4147,7 @@ function editUser(encodedUsername) {
                 window.location.reload();
             }
         }
-const CURRENT_VERSION = '1.5.5';
+const CURRENT_VERSION = '1.5.6';
 const UPDATE_FIX = "constsCURRENT_VERSION='d.d.d'";
 		async function checkForUpdates(isManual = false) {
             try {
@@ -4226,14 +4332,14 @@ function applySelectedIps() {
     toggleIpSelectorModal(false);
 }
 document.addEventListener('DOMContentLoaded', () => {
-        if (localStorage.getItem('zeus_path_warned_' + CURRENT_VERSION) !== 'true') {
-            const modal = document.getElementById('path-warning-modal');
-            const card = modal.querySelector('div');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.classList.add('opacity-100', 'pointer-events-auto');
-            card.classList.remove('opacity-0', 'scale-95');
-            card.classList.add('opacity-100', 'scale-100');
-        }			
+            if (localStorage.getItem('zeus_path_warned_' + CURRENT_VERSION) !== 'true') {
+                const modal = document.getElementById('path-warning-modal');
+                const card = modal.querySelector('div');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+                card.classList.remove('opacity-0', 'scale-95');
+                card.classList.add('opacity-100', 'scale-100');
+            }			
             const versionBadge = document.getElementById('panel-version');
             if (versionBadge) versionBadge.innerText = 'v' + CURRENT_VERSION;
             renderPortCheckboxes();
@@ -4241,6 +4347,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadLocations();
             setInterval(() => loadUsers(true), 2000);
             setTimeout(() => checkForUpdates(false), 2000);
+            setInterval(() => checkForUpdates(false), 60000);
         });
     </script>
 </body>
