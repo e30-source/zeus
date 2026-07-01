@@ -22,6 +22,16 @@
        style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); margin-bottom: 15px;" />
        
 ---
+  <img width="100%" alt="Zeus Panel Dark Mode" 
+       src="https://raw.githubusercontent.com/IR-NETLIFY/zeus/refs/heads/main/photos/add.png" 
+       style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); margin-bottom: 15px;" />
+       
+
+  <img width="100%" alt="Zeus Panel Dark Mode" 
+       src="https://raw.githubusercontent.com/IR-NETLIFY/zeus/refs/heads/main/photos/settings.png" 
+       style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); margin-bottom: 15px;" />
+       
+---
 
 <div align="center">
   <h1>⚡ پنل زئوس کلودفلر (Zeus Panel)</h1>
