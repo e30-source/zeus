@@ -2503,6 +2503,20 @@ login: `<!DOCTYPE html>
         </button>
     </div>
 </div>
+<div id="free-panel-warning-modal" class="fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 ease-out">
+    <div class="w-full max-w-md bg-white dark:bg-amoled-card border border-rose-500/50 rounded-3xl shadow-2xl overflow-hidden p-6 text-center transition-all transform duration-300 opacity-0 scale-95 ease-out">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-500 mb-4 shadow-inner">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <h3 class="font-black text-xl text-gray-900 dark:text-white mb-2">پیام همگانی</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed font-medium">
+            این پنل کاملاً <span class="text-rose-500 font-bold">رایگان</span> است. هرگونه فروش پنل یا کانفیگ‌های آن مصداق بی ناموسی و بی شرفی است. لطفاً از این ابزار فقط به صورت شخصی و رایگان استفاده کنید.
+        </p>
+        <button onclick="closeFreePanelWarning()" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-sm transition duration-300 shadow-lg shadow-rose-500/25">
+            تأیید و موافقت
+        </button>
+    </div>
+</div>
     <div id="user-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-200 ease-out">
         <div id="user-modal-card" class="w-full max-w-xl bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl overflow-hidden transition-[opacity,transform] duration-200 opacity-0 scale-95 ease-out flex flex-col max-h-[90vh] transform-gpu" style="will-change: transform, opacity;">
             <div class="px-6 py-4 border-b border-gray-150 dark:border-zinc-800/80 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-900/30">
@@ -2780,6 +2794,19 @@ login: `<!DOCTYPE html>
             </div>
         </div>
     </div>
+<div id="qr-modal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-200 ease-out">
+    <div id="qr-modal-card" class="w-full max-w-sm bg-white dark:bg-amoled-card border border-gray-200 dark:border-amoled-border rounded-3xl shadow-2xl p-6 transform transition-all scale-95 opacity-0 duration-200 text-center">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">QR Code</h3>
+            <button onclick="toggleQrModal(false)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="flex justify-center bg-white p-4 rounded-xl mb-4">
+            <div id="qrcode-container"></div>
+        </div>
+    </div>
+</div>
     <div id="bulk-actions-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[40] bg-white dark:bg-zinc-900/90 border border-gray-200 dark:border-zinc-800/80 px-6 py-4 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-4 w-[95%] max-w-4xl transition-all duration-300 transform translate-y-28 opacity-0 pointer-events-none backdrop-blur-md">
         <div class="flex items-center gap-2">
             <span class="w-3 h-3 bg-blue-500 rounded-full animate-pulse shadow-sm shadow-blue-500/50"></span>
@@ -3626,6 +3653,12 @@ login: `<!DOCTYPE html>
 							                'ساب متنی' +
 							            '</button>' +
 							        '</div>' +
+									'<div class="flex gap-1">' +
+							            '<button onclick="showSubQr(\\'' + encodeURIComponent(user.username) + '\\')" class="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg text-xs font-bold transition border border-amber-200 dark:border-amber-800">' +
+							                '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 19h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>' +
+							                'QR ساب' +
+							            '</button>' +
+							        '</div>' +
 							        '<div class="flex gap-1">' +
 							            '<button onclick="copyStatusLink(\\'' + encodeURIComponent(user.username) + '\\')" class="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg text-xs font-bold transition border border-emerald-200 dark:border-emerald-800">' +
 							                '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>' +
@@ -3768,6 +3801,14 @@ function openUsageWarning() {
     card.classList.remove('opacity-0', 'scale-95');
     card.classList.add('opacity-100', 'scale-100');
 }
+function closeFreePanelWarning() {
+    const modal = document.getElementById('free-panel-warning-modal');
+    const card = modal.querySelector('div');
+    modal.classList.remove('opacity-100', 'pointer-events-auto');
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    card.classList.remove('opacity-100', 'scale-100');
+    card.classList.add('opacity-0', 'scale-95');
+}
         function getVlessLink(username) {
             const user = window.allUsers.find(u => u.username === username);
             if (!user) return '';
@@ -3807,6 +3848,37 @@ function openUsageWarning() {
             }).catch(() => {
                 alert('خطا در کپی کردن لینک ساب!');
             });
+        }
+		function toggleQrModal(show, text) {
+            const modal = document.getElementById('qr-modal');
+            const card = document.getElementById('qr-modal-card');
+            const container = document.getElementById('qrcode-container');
+            if (show) {
+                container.innerHTML = '';
+                new QRCode(container, {
+                    text: text,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+                card.classList.remove('opacity-0', 'scale-95');
+                card.classList.add('opacity-100', 'scale-100');
+            } else {
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                card.classList.remove('opacity-100', 'scale-100');
+                card.classList.add('opacity-0', 'scale-95');
+            }
+        }
+
+        function showSubQr(encodedUsername) {
+            const username = decodeURIComponent(encodedUsername);
+            const link = getSubLink(username);
+            toggleQrModal(true, link);
         }
         function copyStatusLink(encodedUsername) {
             const username = decodeURIComponent(encodedUsername);
@@ -4147,7 +4219,7 @@ function editUser(encodedUsername) {
                 window.location.reload();
             }
         }
-const CURRENT_VERSION = '1.5.10';
+const CURRENT_VERSION = '1.5.6';
 const UPDATE_FIX = "constsCURRENT_VERSION='d.d.d'";
 		async function checkForUpdates(isManual = false) {
             try {
@@ -4332,6 +4404,12 @@ function applySelectedIps() {
     toggleIpSelectorModal(false);
 }
 document.addEventListener('DOMContentLoaded', () => {
+			const freeModal = document.getElementById('free-panel-warning-modal');
+            const freeCard = freeModal.querySelector('div');
+            freeModal.classList.remove('opacity-0', 'pointer-events-none');
+            freeModal.classList.add('opacity-100', 'pointer-events-auto');
+            freeCard.classList.remove('opacity-0', 'scale-95');
+            freeCard.classList.add('opacity-100', 'scale-100');
             if (localStorage.getItem('zeus_path_warned_' + CURRENT_VERSION) !== 'true') {
                 const modal = document.getElementById('path-warning-modal');
                 const card = modal.querySelector('div');
@@ -4477,6 +4555,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="flex items-center gap-2">⛓️ کپی لینک ساب‌اسکریپشن متنی</span>
                     <span class="text-indigo-500">کپی</span>
                 </button>
+				<button onclick="showSubQr()" class="w-full flex justify-between items-center px-4 py-3 bg-white dark:bg-amoled-card border border-gray-200 dark:border-amoled-border hover:border-amber-500 dark:hover:border-amber-500 rounded-xl text-xs font-medium transition shadow-sm">
+                    <span class="flex items-center gap-2">📱 دریافت کیوآر کد ساب</span>
+                    <span class="text-amber-500">نمایش</span>
+                </button>
                 <button onclick="copyVlessConfig()" class="w-full flex justify-between items-center px-4 py-3 bg-white dark:bg-amoled-card border border-gray-200 dark:border-amoled-border hover:border-blue-500 dark:hover:border-blue-500 rounded-xl text-xs font-medium transition shadow-sm">
                     <span class="flex items-center gap-2">🚀 کپی کانفیگ VLESS (مستقیم)</span>
                     <span class="text-blue-500">کپی</span>
@@ -4484,7 +4566,19 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
     </div>
-	
+<div id="qr-modal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 opacity-0 pointer-events-none transition-opacity duration-200 ease-out">
+    <div id="qr-modal-card" class="w-full max-w-sm bg-white dark:bg-amoled-card border border-gray-200 dark:border-amoled-border rounded-3xl shadow-2xl p-6 transform transition-all scale-95 opacity-0 duration-200 text-center">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">QR Code</h3>
+            <button onclick="toggleQrModal(false)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="flex justify-center bg-white p-4 rounded-xl mb-4">
+            <div id="qrcode-container"></div>
+        </div>
+    </div>
+</div>
 <div class="flex flex-col gap-4 mt-6 z-10">
     <div class="flex items-center gap-4 justify-center">
         <a href="https://github.com/IR-NETLIFY/zeus" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-amoled-card border border-gray-200 dark:border-amoled-border rounded-full shadow-sm hover:shadow-md transition text-sm font-bold text-gray-700 dark:text-zinc-300 hover:text-black dark:hover:text-white group">
@@ -4550,6 +4644,36 @@ document.addEventListener('DOMContentLoaded', () => {
         function copyTextSub() {
             const link = window.location.protocol + '//' + getHost() + '/sub/' + encodeURIComponent(window.statusUser.username);
             navigator.clipboard.writeText(link).then(() => alert('✅ لینک ساب متنی کپی شد!'));
+        }
+		function toggleQrModal(show, text) {
+            const modal = document.getElementById('qr-modal');
+            const card = document.getElementById('qr-modal-card');
+            const container = document.getElementById('qrcode-container');
+            if (show) {
+                container.innerHTML = '';
+                new QRCode(container, {
+                    text: text,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100', 'pointer-events-auto');
+                card.classList.remove('opacity-0', 'scale-95');
+                card.classList.add('opacity-100', 'scale-100');
+            } else {
+                modal.classList.remove('opacity-100', 'pointer-events-auto');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                card.classList.remove('opacity-100', 'scale-100');
+                card.classList.add('opacity-0', 'scale-95');
+            }
+        }
+
+        function showSubQr() {
+            const link = window.location.protocol + '//' + getHost() + '/sub/' + encodeURIComponent(window.statusUser.username);
+            toggleQrModal(true, link);
         }
         document.addEventListener('DOMContentLoaded', () => {
             const u = window.statusUser;
