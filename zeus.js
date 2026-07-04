@@ -2248,7 +2248,6 @@ const HTML_TEMPLATES = {
         .dark ::-webkit-scrollbar-thumb:hover {
             background: #2d3748;
         }
-        /* استایل اسکرول‌بار برای مرورگر فایرفاکس */
         * {
             scrollbar-width: thin;
             scrollbar-color: #d1d5db #f3f4f6;
@@ -2536,7 +2535,7 @@ const HTML_TEMPLATES = {
         </div>
         <h3 class="font-black text-xl text-gray-900 dark:text-white mb-2">پیام همگانی</h3>
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed font-medium">
-            این پنل کاملاً <span class="text-rose-500 font-bold">رایگان</span> است. هرگونه فروش پنل یا کانفیگ‌های آن مصداق بی ناموسی و بی شرفی است. لطفاً از این ابزار فقط به صورت شخصی و رایگان استفاده کنید.
+            این پنل کاملاً <span class="text-rose-500 font-bold">رایگان</span> است. هرگونه فروش پنل یا کانفیگ‌های آن مصداق کلاه‌برداری و رفتاری دور از انسانیت و شرافت است. لطفاً از این ابزار فقط به صورت شخصی و رایگان استفاده کنید.
         </p>
         <button onclick="closeFreePanelWarning()" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-sm transition duration-300 shadow-lg shadow-rose-500/25">
             تأیید و موافقت
@@ -3435,7 +3434,6 @@ const HTML_TEMPLATES = {
                 '</label>';
             }).join('');
         }
-        // Initialize 443 and 80 active state immediately
         setTimeout(function() {
             const cb443 = document.querySelector('input[name="ports"][value="443"]');
             if (cb443) cb443.checked = true;
@@ -3673,14 +3671,12 @@ const HTML_TEMPLATES = {
             const sortVal = document.getElementById('sort-users').value;
             const serverTime = window.lastServerTime || Date.now();
             let filtered = [...window.allUsers];
-            // Search filter
             if (searchQuery) {
                 filtered = filtered.filter(u => 
                     (u.username || '').toLowerCase().includes(searchQuery) || 
                     (u.uuid || '').toLowerCase().includes(searchQuery)
                 );
             }
-            // Status filter
             if (filterStatus !== 'all') {
                 filtered = filtered.filter(u => {
                     const isOnline = u.is_online === 1;
@@ -3700,7 +3696,6 @@ const HTML_TEMPLATES = {
                     return true;
                 });
             }
-            // Sort
             filtered.sort((a, b) => {
                 if (sortVal === 'newest') {
                     return b.id - a.id;
@@ -4502,7 +4497,7 @@ async function saveSettings() {
                 window.location.reload();
             }
         }
-const CURRENT_VERSION = '1.6.4';
+const CURRENT_VERSION = '1.6.5';
 const UPDATE_FIX = "constsCURRENT_VERSION='d.d.d'";
 		async function checkForUpdates(isManual = false) {
             try {
@@ -4522,7 +4517,6 @@ const UPDATE_FIX = "constsCURRENT_VERSION='d.d.d'";
                     const badge = document.getElementById('update-badge');
                     if (badge) badge.remove();
                     if (isManual) {
-                        // باز کردن پنجره اختصاصی آپدیت به جای alert معمولی
                         toggleUpdateModal(true, latestVersion);
                     }
                 } else {
@@ -4944,8 +4938,38 @@ document.addEventListener('DOMContentLoaded', () => {
         </a>
     </div>
 </div>
+<div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
     <script>
         /* {{USER_DATA_PLACEHOLDER}} */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' 
+                ? 'bg-red-50 dark:bg-red-900/40 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400' 
+                : 'bg-emerald-50 dark:bg-emerald-900/40 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400';
+            
+            toast.className = 'px-4 py-3 border rounded-xl shadow-lg font-bold text-sm transform transition-all duration-300 -translate-y-full opacity-0 ' + colors;
+            toast.innerText = message;
+            
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-full', 'opacity-0');
+            });
+            
+            setTimeout(() => {
+                toast.classList.add('-translate-y-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        window.alert = function(message) {
+            const msgStr = message ? message.toString() : '';
+            if (msgStr.includes('خطا') || msgStr.includes('⚠️') || msgStr.includes('❌')) {
+                showToast(msgStr, 'error');
+            } else {
+                showToast(msgStr, 'success');
+            }
+        };
         function getHost() {
             return window.location.host;
         }
@@ -5024,7 +5048,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 bg-gray-500/10 border border-gray-500/20 text-gray-500 dark:text-zinc-400 rounded-full text-xs font-bold shadow-sm';
                 badge.querySelector('span.w-2').className = 'w-2 h-2 rounded-full bg-gray-500';
             }
-            // Compute volume
             const usedGb = u.used_gb || 0;
             const limitGb = u.limit_gb;
             const formattedUsed = usedGb < 1 ? (usedGb * 1024).toFixed(0) + ' MB' : usedGb.toFixed(2) + ' GB';
@@ -5035,7 +5058,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pct = Math.min((usedGb / limitGb) * 100, 100);
                 document.getElementById('volume-pct').innerText = pct.toFixed(0) + '٪';
                 document.getElementById('volume-progress').style.width = pct + '%';
-                // Color bar
                 const hue = 120 - (pct * 1.2);
                 document.getElementById('volume-progress').style.backgroundColor = 'hsl(' + hue + ', 80%, 45%)';
                 if (usedGb >= limitGb) isVolumeExpired = true;
@@ -5045,7 +5067,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('volume-progress').style.width = '100%';
                 document.getElementById('volume-progress').style.backgroundColor = '#2dd4bf';
             }
-            // Compute Expiry
             let daysRemaining = 'نامحدود';
             let totalDays = 'نامحدود';
             let isTimeExpired = false;
