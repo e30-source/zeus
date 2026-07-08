@@ -106,9 +106,9 @@
 
 <a href="https://www.star-history.com/?repos=IR-NETLIFY%2Fzeus&type=timeline&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=IR-NETLIFY/zeus&type=timeline&theme=dark&legend=bottom-right" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=IR-NETLIFY/zeus&type=timeline&legend=bottom-right" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=IR-NETLIFY/zeus&type=timeline&legend=bottom-right" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=IR-NETLIFY/zeus&type=timeline&theme=dark&legend=top-left&sealed_token=PfEg9mUSduw6OhRLK6oblbehsnWLswyNNhXclsnk-nmqeLsLvDf_J1g9v8jOeBkhHT7-mePG1aUNoYtBcR-Q5_EnaM1qxQnf5oIpVWIz5su_whOA2N_WAQ" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=IR-NETLIFY/zeus&type=timeline&legend=top-left&sealed_token=PfEg9mUSduw6OhRLK6oblbehsnWLswyNNhXclsnk-nmqeLsLvDf_J1g9v8jOeBkhHT7-mePG1aUNoYtBcR-Q5_EnaM1qxQnf5oIpVWIz5su_whOA2N_WAQ" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=IR-NETLIFY/zeus&type=timeline&legend=top-left&sealed_token=PfEg9mUSduw6OhRLK6oblbehsnWLswyNNhXclsnk-nmqeLsLvDf_J1g9v8jOeBkhHT7-mePG1aUNoYtBcR-Q5_EnaM1qxQnf5oIpVWIz5su_whOA2N_WAQ" />
  </picture>
 </a>
 
