@@ -120,10 +120,11 @@
 ## 🚀 راهنمای نصب و استقرار سریع
 
   
+<p><b>💡 برای راه‌اندازی و مدیریت پنل می‌توانید از طریق ربات تلگرام یا سایت نصب‌کننده اقدام کنید:</b></p>
+
+---
 
 <div  align="center">
-
-<p><b>💡 برای راه‌اندازی و مدیریت پنل می‌توانید از طریق ربات تلگرام یا سایت نصب‌کننده اقدام کنید:</b></p>
 
 <a  href="https://t.me/ZEUS_PANEL_BOT"  target="_blank">
 
@@ -131,17 +132,7 @@
 
 </a>
 
-&nbsp;&nbsp;
-
-<a  href="https://zeus-install.ir-netlify.workers.dev/"  target="_blank">
-
-<img src="https://img.shields.io/badge/Launch_Zeus_Panel-Deployer_Site-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Deploy Zeus" height="40">
-
-</a>
-
 </div>
-
-  
 
 <br>
 
@@ -165,7 +156,15 @@
 
 ---
 
-  
+  <div  align="center">
+
+<a  href="https://zeus-install.ir-netlify.workers.dev/"  target="_blank">
+
+<img src="https://img.shields.io/badge/Launch_Zeus_Panel-Deployer_Site-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Deploy Zeus" height="40">
+
+</a>
+
+</div>
 
 ### 🌐 روش دوم: نصب از طریق سایت Deployer
 
