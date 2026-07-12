@@ -576,6 +576,9 @@ const Router = {
 					} else {
 						const { username: new_username, limit_gb, expiry_days, limit_req, ips, tls, port, fingerprint, ip_limit, block_porn, block_ads, frag_len, frag_int, user_proxy_iata, user_socks5, user_proxy_ip, auto_reset_vol_days, auto_reset_req_days, auto_rotate_ip, rotate_time, ip_operator, ip_count } = body;
 						if (new_username && new_username !== username) {
+							if (!/^[a-zA-Z0-9_-]+$/.test(new_username)) {
+								return new Response(JSON.stringify({ error: "نام کاربری جدید غیرمجاز است" }), { status: 400, headers: { "Content-Type": "application/json; charset=utf-8" } });
+							}
 							const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(new_username).first();
 							if (existing) {
 								return new Response(JSON.stringify({ error: "این نام کاربری از قبل وجود دارد" }), { status: 400, headers: { "Content-Type": "application/json" } });
@@ -665,6 +668,9 @@ const Router = {
 					}
 					if (username.length > 32) {
 						return new Response(JSON.stringify({ error: "نام کاربری نمی‌تواند بیشتر از ۳۲ کاراکتر باشد" }), { status: 400, headers: { "Content-Type": "application/json" } });
+					}
+					if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+						return new Response(JSON.stringify({ error: "نام کاربری غیرمجاز است (فقط حروف، اعداد، خط تیره و آندرلاین)" }), { status: 400, headers: { "Content-Type": "application/json; charset=utf-8" } });
 					}
 					const finalUuid = uuid || crypto.randomUUID();
 					const parsedUsedGb = parseFloat(used_gb);
@@ -2313,6 +2319,7 @@ async function connectHttp(proxyStr, destAddr, destPort, initialData) {
 	}
 }
 const COMMON_HEAD = `<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
 <script>
 	tailwind.config = {
@@ -3963,7 +3970,7 @@ ${COMMON_TOAST_HTML}
             });
             renderFilteredUsers(filtered, serverTime);
         }
-        function renderFilteredUsers(users, serverTime) {
+		function renderFilteredUsers(users, serverTime) {
             const loadingState = document.getElementById('loading-state');
             const tableContainer = document.getElementById('users-table-container');
             const emptyState = document.getElementById('empty-state');
@@ -4008,7 +4015,7 @@ ${COMMON_TOAST_HTML}
                         if (user.created_at) {
                             const created = new Date(user.created_at);
                             const expiryDate = new Date(created.getTime() + (user.expiry_days * 24 * 60 * 60 * 1000));
-                            const diffDays = Math.ceil((expiryDate - new Date(serverTime)) / (1000 * 60 * 60 * 24));
+                            const diffDays = Math.ceil((expiryDate - new Date()) / (1000 * 60 * 60 * 24));
                             daysRemaining = diffDays > 0 ? diffDays : 0;
                             daysPercent = Math.max(0, Math.min(100, (daysRemaining / user.expiry_days) * 100));
                         } else {
@@ -4098,32 +4105,32 @@ ${COMMON_TOAST_HTML}
 					        '</div>' +
 					    '</div>';
 					}
-					const onlineCount = user.online_count || 0;
-					const limit = user.ip_limit !== undefined ? user.ip_limit : user.max_connections;
-					let onlineHtml = '';
-					if (limit) {
-					    const onlinePercent = Math.min((onlineCount / limit) * 100, 100);
-					    const onlineHue = 120 - (onlinePercent * 1.2);
-					    onlineHtml = '<div class="flex flex-col gap-1.5 w-full min-w-[65px] max-w-[90px] mx-auto select-none">' +
-					        '<div class="flex flex-row items-center justify-between text-[9px] text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">' +
-					            '<span class="text-gray-800 dark:text-zinc-200 leading-none font-bold" dir="ltr">' + onlineCount + '</span>' +
-					            '<span class="leading-none font-bold" dir="ltr">' + limit + '</span>' +
-					        '</div>' +
-					        '<div class="w-full h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">' +
-					            '<div class="h-full rounded-full transition-all duration-500" style="width: ' + onlinePercent + '%; background-color: hsl(' + onlineHue + ', 80%, 45%)"></div>' +
-					        '</div>' +
-					    '</div>';
-					} else {
-					    onlineHtml = '<div class="flex flex-col gap-1.5 w-full min-w-[65px] max-w-[90px] mx-auto select-none">' +
-					        '<div class="flex flex-row items-center justify-between text-[9px] text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">' +
-					            '<span class="text-gray-800 dark:text-zinc-200 leading-none font-bold" dir="ltr">' + onlineCount + '</span>' +
-					            '<span class="leading-none text-[12px] font-bold">∞</span>' +
-					        '</div>' +
-					        '<div class="w-full h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">' +
-					            '<div class="h-full ' + (onlineCount > 0 ? 'bg-green-600' : 'bg-gray-400') + ' rounded-full transition-all duration-500" style="width: 100%"></div>' +
-					        '</div>' +
-					    '</div>';
-					}
+                    const onlineCount = user.online_count || 0;
+                    const limit = user.ip_limit !== undefined ? user.ip_limit : user.max_connections;
+                    let onlineHtml = '';
+                    if (limit) {
+                        const onlinePercent = Math.min((onlineCount / limit) * 100, 100);
+                        const onlineHue = 120 - (onlinePercent * 1.2);
+                        onlineHtml = '<div class="flex flex-col gap-1.5 w-full min-w-[65px] max-w-[90px] mx-auto select-none">' +
+                            '<div class="flex flex-row items-center justify-between text-[9px] text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">' +
+                                '<span class="text-gray-800 dark:text-zinc-200 leading-none font-bold" dir="ltr">' + onlineCount + '</span>' +
+                                '<span class="leading-none font-bold" dir="ltr">' + limit + '</span>' +
+                            '</div>' +
+                            '<div class="w-full h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">' +
+                                '<div class="h-full rounded-full transition-all duration-500" style="width: ' + onlinePercent + '%; background-color: hsl(' + onlineHue + ', 80%, 45%)"></div>' +
+                            '</div>' +
+                        '</div>';
+                    } else {
+                        onlineHtml = '<div class="flex flex-col gap-1.5 w-full min-w-[65px] max-w-[90px] mx-auto select-none">' +
+                            '<div class="flex flex-row items-center justify-between text-[9px] text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">' +
+                                '<span class="text-gray-800 dark:text-zinc-200 leading-none font-bold" dir="ltr">' + onlineCount + '</span>' +
+                                '<span class="leading-none text-[12px] font-bold">∞</span>' +
+                            '</div>' +
+                            '<div class="w-full h-1.5 bg-gray-200 dark:bg-zinc-700 rounded-full overflow-hidden">' +
+                                '<div class="h-full ' + (onlineCount > 0 ? 'bg-green-600' : 'bg-gray-400') + ' rounded-full transition-all duration-500" style="width: 100%"></div>' +
+                            '</div>' +
+                        '</div>';
+                    }
                     let isExpired = false;
                     if (user.limit_gb && (user.used_gb || 0) >= user.limit_gb) isExpired = true;
                     if (user.limit_req && (user.used_req || 0) >= user.limit_req) isExpired = true;
@@ -4144,27 +4151,27 @@ ${COMMON_TOAST_HTML}
                         const iata = user.user_proxy_iata.toUpperCase();
                         const cca2 = locationsMap[iata];
                         const flag = cca2 ? getFlagEmoji(cca2) : '🌐';
-                        locBadge = '<span title="کشور: ' + iata + '" class="text-xl leading-none px-0.5 drop-shadow-[0_0_2px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]">' + flag + '</span>';
+                        locBadge = '<span title="کشور: ' + iata + '" class="text-base leading-none px-0.5 drop-shadow-[0_0_2px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]">' + flag + '</span>';
                     } else if (user.user_socks5 || user.user_proxy_ip) {
                         const targetProxy = user.user_socks5 || user.user_proxy_ip;
                         const cachedFlag = proxyFlagCache[targetProxy];
                         if (cachedFlag) {
-                            locBadge = '<span title="پروکسی اختصاصی" class="text-xl leading-none px-0.5 drop-shadow-[0_0_2px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]">' + cachedFlag + '</span>';
+                            locBadge = '<span title="پروکسی اختصاصی" class="text-base leading-none px-0.5 drop-shadow-[0_0_2px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]">' + cachedFlag + '</span>';
                         } else {
-                            locBadge = '<span data-proxy="' + targetProxy + '" title="پروکسی اختصاصی" class="async-proxy-flag text-xl leading-none px-0.5 drop-shadow-[0_0_2px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]">⏳</span>';
+                            locBadge = '<span data-proxy="' + targetProxy + '" title="پروکسی اختصاصی" class="async-proxy-flag text-base leading-none px-0.5 drop-shadow-[0_0_2px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]">⏳</span>';
                         }
                     }
                     return '<tr class="hover:bg-gray-50 dark:hover:bg-zinc-900/40 border-b border-gray-100 dark:border-zinc-800 last:border-0">' +
                             '<td class="p-1 border-r border-gray-100 dark:border-zinc-800 text-center select-none">' +
                                 '<input type="checkbox" name="select-user" value="' + encodeURIComponent(user.username) + '" onchange="onUserSelectChange(this)" ' + isChecked + ' class="w-4 h-4 rounded-md border-2 border-gray-300 dark:border-zinc-700 text-blue-600 bg-white dark:bg-zinc-800 checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500/50 focus:ring-offset-0 transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95">' +
                             '</td>' +
-                            '<td class="p-1.5 border-r border-gray-100 dark:border-zinc-800 text-center">' +
-                                '<div class="flex flex-col items-center justify-center gap-1 min-w-[70px] max-w-[100px] mx-auto select-none">' +
-                                    '<span class="font-bold text-gray-900 dark:text-zinc-100 text-xs truncate max-w-full leading-none">' + user.username + '</span>' +
-                                    '<div class="flex flex-wrap items-center justify-center gap-0.5">' +
-                                        (!isEffectivelyActive ? '<span class="px-1 py-px text-[9px] font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded whitespace-nowrap">غیرفعال</span>' : '<span class="px-1 py-px text-[9px] font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded whitespace-nowrap">فعال</span>') +
+                            '<td class="p-1 border-r border-gray-100 dark:border-zinc-800 text-center">' +
+                                '<div class="flex flex-col items-center justify-center gap-1 w-full max-w-[120px] mx-auto select-none">' +
+                                    '<span class="font-bold text-gray-900 dark:text-zinc-100 text-xs truncate max-w-full pb-0.5">' + user.username + '</span>' +
+                                    '<div class="flex flex-row items-center justify-center gap-1 whitespace-nowrap">' +
+                                        (!isEffectivelyActive ? '<span class="px-1 py-px text-[9px] font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded">غیرفعال</span>' : '<span class="px-1 py-px text-[9px] font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded">فعال</span>') +
                                         locBadge +
-                                        (user.is_online === 1 ? '<span class="px-1 py-px text-[9px] font-medium bg-green-600 text-white rounded animate-pulse whitespace-nowrap" dir="rtl">' + user.online_count + '</span>' : '<span class="px-1 py-px text-[9px] font-medium bg-gray-200 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400 rounded whitespace-nowrap">آفلاین</span>') +
+                                        (user.is_online === 1 ? '<span class="px-1 py-px text-[9px] font-medium bg-green-600 text-white rounded animate-pulse" dir="rtl">' + user.online_count + '</span>' : '<span class="px-1 py-px text-[9px] font-medium bg-gray-200 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400 rounded">آفلاین</span>') +
                                     '</div>' +
                                 '</div>' +
                             '</td>' +
@@ -4193,7 +4200,7 @@ ${COMMON_TOAST_HTML}
 							        '</div>' +
 							    '</div>' +
 							'</td>' +
-							'<td class="p-1.5 border-r border-gray-100 dark:border-zinc-800 text-xs">' + 
+							'<td class="p-1 border-r border-gray-100 dark:border-zinc-800 text-xs">' + 
 							    '<div class="grid grid-flow-col grid-rows-3 gap-1 w-max mx-auto">' +
 							        String(user.port || "").split(",").map(function(p) {
 							            p = p.trim();
@@ -4268,6 +4275,13 @@ ${COMMON_TOAST_HTML}
             submitButton.disabled = true;
             submitButton.innerText = isEditMode ? 'در حال ذخیره تغییرات...' : 'در حال ایجاد...';
             const username = document.getElementById('input-name').value;
+            const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+            if (!usernameRegex.test(username)) {
+                alert('⚠️ نام کاربری فقط می‌تواند شامل حروف انگلیسی، اعداد، خط تیره (-) و آندرلاین (_) باشد!');
+                submitButton.disabled = false;
+                submitButton.innerText = isEditMode ? 'ذخیره تغییرات' : 'ایجاد کاربر';
+                return;
+            }
             const limit = document.getElementById('input-limit').value || null;
             const expiry = document.getElementById('input-expiry').value || null;
             const reqLimit = document.getElementById('input-req-limit').value || null;
@@ -5066,7 +5080,7 @@ window.filterLocations = function() {
                 window.location.reload();
             }
         }
-const CURRENT_VERSION = '1.8.4';
+const CURRENT_VERSION = '1.8.5';
 const UPDATE_FIX = "constsCURRENT_VERSION='d.d.d'";
 		async function checkForUpdates(isManual = false) {
             try {
