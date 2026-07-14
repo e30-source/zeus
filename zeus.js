@@ -3924,7 +3924,7 @@ ${COMMON_TOAST_HTML}
 			}
 		};
         window.toggleFragInputs = function(show) {
-            const container = document.getElementById('frag-events-container');
+            const container = document.getElementById('frag-inputs-container');
             if (container) {
                 if (show) {
                     container.classList.remove('hidden');
@@ -4892,27 +4892,6 @@ function saveSettings() {
     toggleSettingsModal(false);
     showToast('✅ تنظیمات با موفقیت ذخیره شد.');
 }
-
-window.toggleProxyMode = function(isSocksMode) {
-    const cfSection = document.getElementById('cf-proxy-section');
-    const socksContainer = document.getElementById('socks5-container');
-    const locationSelect = document.getElementById('location-select');
-    const locationSearch = document.getElementById('location-search');
-    const socksInput = document.getElementById('socks5-input');
-    if (isSocksMode) {
-        if (cfSection) cfSection.classList.add('opacity-50', 'pointer-events-none');
-        if (locationSelect) locationSelect.disabled = true;
-        if (locationSearch) locationSearch.disabled = true;
-        if (socksContainer) socksContainer.classList.remove('opacity-50', 'pointer-events-none');
-        if (socksInput) socksInput.disabled = false;
-    } else {
-        if (cfSection) cfSection.classList.remove('opacity-50', 'pointer-events-none');
-        if (locationSelect) locationSelect.disabled = false;
-        if (locationSearch) locationSearch.disabled = false;
-        if (socksContainer) socksContainer.classList.add('opacity-50', 'pointer-events-none');
-        if (socksInput) socksInput.disabled = true;
-    }
-};
 window.toggleUserProxyMode = function(isSocksMode) {
     const cfSection = document.getElementById('user-cf-proxy-section');
     const socksContainer = document.getElementById('user-socks5-container');
@@ -5547,19 +5526,6 @@ function toggleProxySelectorModal(show) { setModalState('proxy-selector-modal', 
 			fetchBtn.disabled = false;
 			loadVipCountries();
 		}
-function populateProxyCountries(countries) {
-    const select = document.getElementById('proxy-country-select');
-    const fetchBtn = document.getElementById('proxy-fetch-btn');
-    select.innerHTML = '';
-    countries.forEach(country => {
-        const option = document.createElement('option');
-        option.value = country;
-        const flag = typeof getFlagEmoji === 'function' ? getFlagEmoji(country) : '🌐';
-        option.textContent = flag + ' ' + country;
-        select.appendChild(option);
-    });
-    fetchBtn.disabled = false;
-}
 async function fetchAndLoadProxy() {
     const select = document.getElementById('proxy-country-select');
     const country = select.value;
@@ -5713,13 +5679,6 @@ const WORKER_DONATE_URL = 'https://noisy-meadow-a466.ir-netlify.workers.dev/';
 					resultSpan.className = 'inline-block mt-1 text-[11px] font-bold transition-colors break-words leading-relaxed empty:hidden';
 				}
 			}
-		}
-		function extractIPFromProxy(proxyStr) {
-			const configMatch = proxyStr.match(/@([^:]+):/);
-			if (configMatch && configMatch[1]) return configMatch[1];
-			const ipMatch = proxyStr.match(/(?:[0-9]{1,3}\.){3}[0-9]{1,3}/);
-			if (ipMatch) return ipMatch[0];
-			return null;
 		}
 		async function testAndDonateProxy() {
 			const proxyInput = document.getElementById('donate-proxy-input').value.trim();
