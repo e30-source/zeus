@@ -1124,9 +1124,7 @@ async function handlevIees(env, storedData = null, ctx = null, request = null) {
 	serverSock.accept();
 	serverSock.binaryType = "arraybuffer";
 	let username = null;
-	let tickCount = 0;
 	let validUUID = null;
-	let userIpLimit = null;
 	let targetDns = "8.8.4.4";
 	let targetDoh = "https://cloudflare-dns.com/dns-query";
 	function addBytes(bytes) {
@@ -1247,13 +1245,8 @@ async function handlevIees(env, storedData = null, ctx = null, request = null) {
 			try {
 				serverSock.send(new Uint8Array(0));
 				if (!validUUID) return;
-				tickCount++;
-				if (tickCount >= 1) {
-					tickCount = 0;
+				{
 					const user = await env.DB.prepare("SELECT is_active, limit_gb, used_gb, limit_req, used_req, expiry_days, created_at, ip_limit, active_ips FROM users WHERE uuid = ?").bind(validUUID).first();
-					if (user) {
-						userIpLimit = user.ip_limit;
-					}
 					let isExpired = false;
 					let isIpLimitExpired = false;
 					let updatedActiveIps = null;
@@ -1448,7 +1441,6 @@ async function handlevIees(env, storedData = null, ctx = null, request = null) {
 					return;
 				}
 			}
-			userIpLimit = user.ip_limit;
 			if (user.block_porn === 1 && user.block_ads === 1) {
 				targetDns = "94.140.14.15";
 				targetDoh = "https://family.adguard-dns.com/dns-query";
@@ -1546,6 +1538,10 @@ async function handlevIees(env, storedData = null, ctx = null, request = null) {
 						if (isBlocked) {
 							serverSock.close();
 							return;
+						}
+						const validIps = dnsCheck.filter((r) => r.type === 1 && typeof r.data === "string" && isIPv4(r.data));
+						if (validIps.length > 0) {
+							addr = validIps[0].data;
 						}
 					} catch (e) {}
 				}
@@ -4864,7 +4860,6 @@ function editUser(encodedUsername) {
             if (userSelect) userSelect.innerHTML = userHtml;
         }
 async function loadLocations() {
-    const select = document.getElementById('location-select');
     const cachedLocations = localStorage.getItem('cached_locations_list');
     const cachedActiveIata = localStorage.getItem('cached_active_iata') || '';
     let hasCachedLocs = false;
@@ -4886,132 +4881,18 @@ async function loadLocations() {
                 hasCachedLocs = true;
             }
         }
-    } catch(e) {}
-    try {
-        const statusRes = await fetch('/api/proxy-ip');
-        let activeIata = '';
-        if (statusRes.ok) {
-            const statusData = await statusRes.json();
-            activeIata = statusData.iata || '';
-            localStorage.setItem('cached_active_iata', activeIata);
-            const socksInput = document.getElementById('socks5-input');
-            const proxyToggle = document.getElementById('proxy-mode-toggle');
-            if (statusData.socks5) {
-                if (socksInput) socksInput.value = statusData.socks5;
-                if (proxyToggle) {
-                    proxyToggle.checked = true;
-                    if (typeof window.toggleProxyMode === 'function') window.toggleProxyMode(true);
-                }
-            } else {
-                if (socksInput) socksInput.value = '';
-                if (proxyToggle) {
-                    proxyToggle.checked = false;
-                    if (typeof window.toggleProxyMode === 'function') window.toggleProxyMode(false);
-                }
-            }
-        }
         const updatedCachedLocs = localStorage.getItem('cached_locations_list');
         if (updatedCachedLocs) {
             const parsed = JSON.parse(updatedCachedLocs);
-            renderLocationsUI(parsed, activeIata);
+            renderLocationsUI(parsed, cachedActiveIata);
         }
-    } catch (err) {
-        if (!hasCachedLocs) {
-            select.innerHTML = '<option value="">⚠️ خطا در دریافت لوکیشن‌ها</option>';
-        }
-    }
+    } catch (err) {}
 }
-async function saveSettings() {
-    const proxyModeToggle = document.getElementById('proxy-mode-toggle');
-    const isProxyMode = proxyModeToggle ? proxyModeToggle.checked : false;
-    const select = document.getElementById('location-select');
-    const socksInput = document.getElementById('socks5-input');
-    const socks5Proxy = (isProxyMode && socksInput) ? socksInput.value.trim() : '';
-    let iata = (!isProxyMode && select) ? select.value : '';
-    const btn = document.getElementById('save-settings-btn');
-    btn.disabled = true;
-    btn.innerText = 'در حال ذخیره...';
-    try {
-        let resolvedIp = 'proxyip.cmliussss.net';
-        if (iata) {
-            const domain = iata.toLowerCase() + '.proxyip.cmliussss.net';
-            const dnsRes = await fetch('https://cloudflare-dns.com/dns-query?name=' + domain + '&type=A', {
-                headers: { 'accept': 'application/dns-json' }
-            });
-            resolvedIp = domain;
-            if (dnsRes.ok) {
-                const dnsData = await dnsRes.json();
-                if (dnsData.Answer && dnsData.Answer.length > 0) {
-                    const ips = dnsData.Answer.filter(ans => ans.type === 1).map(ans => ans.data);
-                    if (ips.length > 0) {
-                        resolvedIp = ips[Math.floor(Math.random() * ips.length)];
-                    }
-                }
-            }
-        }
-        const response = await fetch('/api/proxy-ip', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ proxy_ip: resolvedIp, iata: iata ? iata.toUpperCase() : '', socks5: socks5Proxy })
-        });
-        if (response.ok) {
-            alert('✅ تنظیمات با موفقیت ذخیره شد.\\n' + (isProxyMode ? 'آی‌پی با پروکسی ثابت شد.' : (iata ? 'آی‌پی پروکسی کلودفلر: ' + resolvedIp : 'آدرس پروکسی به حالت پیش‌فرض بازگشت.')));
-            toggleSettingsModal(false);
-        } else {
-            alert('خطا در ذخیره تنظیمات');
-        }
-    } catch (err) {
-        alert('خطا در برقراری ارتباط با سرور');
-    } finally {
-        btn.disabled = false;
-        btn.innerText = 'ذخیره تنظیمات';
-    }
+function saveSettings() {
+    toggleSettingsModal(false);
+    showToast('✅ تنظیمات با موفقیت ذخیره شد.');
 }
-async function testSocksProxy() {
-	const btn = document.getElementById('test-proxy-btn');
-	const resultSpan = document.getElementById('test-proxy-result');
-	const proxyStr = document.getElementById('socks5-input').value.trim();
-	if (!proxyStr) {
-		resultSpan.innerText = 'وارد نشده!';
-		resultSpan.className = 'text-[11px] font-bold text-red-500 w-full mt-1';
-		return;
-	}
-	btn.disabled = true;
-	btn.innerText = 'صبر کنید...';
-	resultSpan.innerText = '';
-	resultSpan.className = 'text-[11px] font-bold transition-colors empty:hidden';
-	const controller = new AbortController();
-	const timeoutId = setTimeout(() => controller.abort(), 5000);
-	try {
-		const res = await fetch('/api/test-proxy', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ proxy: proxyStr }),
-			signal: controller.signal
-		});
-		clearTimeout(timeoutId);
-		const data = await res.json();
-		if (res.ok && data.success) {
-			const flag = typeof getFlagEmoji === 'function' ? getFlagEmoji(data.country) : '🌐';
-			resultSpan.innerText = flag + ' پینگ: ' + data.ping + 'ms';
-			resultSpan.className = 'text-[11px] font-bold text-green-600';
-		} else {
-			resultSpan.innerText = 'خطا: ' + (data.error || 'ناموفق');
-			resultSpan.className = 'text-[11px] font-bold text-red-500 w-full mt-1 break-words';
-		}
-	} catch (e) {
-		clearTimeout(timeoutId);
-		if (e.name === 'AbortError') {
-			resultSpan.innerText = 'تایم‌اوت (پروکسی خراب است)';
-		} else {
-			resultSpan.innerText = 'خطا در ارتباط';
-		}
-		resultSpan.className = 'text-[11px] font-bold text-red-500 w-full mt-1 break-words';
-	} finally {
-		btn.disabled = false;
-		btn.innerText = 'تست پروکسی';
-	}
-}
+
 window.toggleProxyMode = function(isSocksMode) {
     const cfSection = document.getElementById('cf-proxy-section');
     const socksContainer = document.getElementById('socks5-container');
@@ -5150,21 +5031,7 @@ async function testUserSocksProxy() {
 		btn.innerText = 'تست پروکسی';
 	}
 }
-window.filterLocations = function() {
-    const searchTerm = document.getElementById('location-search').value.toLowerCase().trim();
-    const cachedLocations = localStorage.getItem('cached_locations_list');
-    const activeIata = localStorage.getItem('cached_active_iata') || '';
-    if (!cachedLocations) return;
-    try {
-        const allLocations = JSON.parse(cachedLocations);
-        const filteredLocations = allLocations.filter(loc => {
-            if (!loc.iata || !loc.city) return false;
-            const searchString = (loc.iata + ' ' + loc.city + ' ' + (loc.cca2 || '')).toLowerCase();
-            return searchString.includes(searchTerm);
-        });
-        renderLocationsUI(filteredLocations, activeIata);
-    } catch(e) {}
-};
+
         async function exportUsersBackup() {
             if (!window.allUsers || window.allUsers.length === 0) {
                 alert('⚠️ کاربری برای پشتیبان‌گیری وجود ندارد!');
@@ -5368,7 +5235,7 @@ window.filterLocations = function() {
                 window.location.reload();
             }
         }
-const CURRENT_VERSION = '1.8.10';
+const CURRENT_VERSION = '1.8.11';
 const UPDATE_FIX = "constsCURRENT_VERSION='d.d.d'";
 		async function checkForUpdates(isManual = false) {
             try {
@@ -5578,7 +5445,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-let cachedProxyCountries = null;
 function toggleProxySelectorModal(show) { setModalState('proxy-selector-modal', show); }
 		async function loadVipCountries() {
 			const select = document.getElementById('vip-country-select');
@@ -5866,7 +5732,7 @@ const WORKER_DONATE_URL = 'https://noisy-meadow-a466.ir-netlify.workers.dev/';
 			}
 			const strictProxyPattern = /^(?:(?:socks4|socks5|socks|http|https):\\/\\/)?([a-zA-Z0-9]{8}):([a-zA-Z0-9]{12})@([^:\\/]+):(\\d+)$/i;
 			if (!strictProxyPattern.test(proxyInput)) {
-				resultSpan.innerText = '❌ فرمت نامعتبر! پروکسی اختصاصی باید دارای یوزر ۸ کاراکتری و رمز ۱۲ کاراکتری باشد.';
+				resultSpan.innerText = '❌ این پروکسی اختصاصی نیست';
 				resultSpan.className = 'text-[11px] font-bold text-red-500 w-full mt-1 break-words';
 				return;
 			}
